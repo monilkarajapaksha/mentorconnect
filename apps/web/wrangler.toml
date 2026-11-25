@@ -1,0 +1,9 @@
+name = "calllog-web"
+pages_build_output_dir = "./dist"
+compatibility_date = "2025-06-01"
+
+# Service binding to the API Worker (apps/api, name = "calllog-api").
+# The Worker must be deployed BEFORE the Pages project is deployed.
+[[services]]
+binding = "API"
+service = "calllog-api"

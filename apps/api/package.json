@@ -1,0 +1,28 @@
+{
+  "name": "@calllog/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "db:migrate:local": "wrangler d1 migrations apply calllog-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply calllog-db --remote",
+    "create-admin": "tsx scripts/create-admin.ts",
+    "seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@calllog/shared": "*",
+    "hono": "^4.6.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.8.71",
+    "@cloudflare/workers-types": "^4.20250601.0",
+    "tsx": "^4.19.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^3.114.0"
+  }
+}

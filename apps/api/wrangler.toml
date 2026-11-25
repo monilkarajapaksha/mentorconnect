@@ -1,0 +1,10 @@
+name = "calllog-api"
+main = "src/index.ts"
+compatibility_date = "2025-06-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "calllog-db"
+# Replace with the id printed by `wrangler d1 create calllog-db`
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
