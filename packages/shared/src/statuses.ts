@@ -18,6 +18,7 @@ export const FOLLOW_UP_STATUSES = [
 
 export const CALL_STATUSES = [
   'declined',
+  'rejected_offer',
   ...FOLLOW_UP_STATUSES,
   'scheduled',
   'order_confirmed',
@@ -30,7 +31,8 @@ export type CallStatus = (typeof CALL_STATUSES)[number];
 export type FollowUpStatus = (typeof FOLLOW_UP_STATUSES)[number];
 
 export const STATUS_LABELS: Record<CallStatus, string> = {
-  declined: 'Declined',
+  declined: 'Not answered',
+  rejected_offer: 'Rejected the offer',
   follow_up_1: `${ORDINALS[0]} Follow-up`,
   follow_up_2: `${ORDINALS[1]} Follow-up`,
   follow_up_3: `${ORDINALS[2]} Follow-up`,
@@ -50,7 +52,8 @@ export const STATUS_LABELS: Record<CallStatus, string> = {
 
 /** Tailwind classes for the badge of each status. */
 export const STATUS_COLORS: Record<CallStatus, string> = {
-  declined: 'bg-red-100 text-red-800 border-red-300',
+  declined: 'bg-slate-100 text-slate-700 border-slate-300',
+  rejected_offer: 'bg-red-100 text-red-800 border-red-300',
   follow_up_1: 'bg-amber-50 text-amber-800 border-amber-200',
   follow_up_2: 'bg-amber-100 text-amber-800 border-amber-200',
   follow_up_3: 'bg-amber-100 text-amber-900 border-amber-300',

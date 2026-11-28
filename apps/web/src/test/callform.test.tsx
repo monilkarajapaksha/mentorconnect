@@ -36,9 +36,9 @@ describe('CallForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('offers all 16 statuses', () => {
+  it('offers all 17 statuses', () => {
     setup();
-    expect(within(screen.getByLabelText('Status')).getAllByRole('option')).toHaveLength(16);
+    expect(within(screen.getByLabelText('Status')).getAllByRole('option')).toHaveLength(17);
   });
 
   it('requires a summary', async () => {

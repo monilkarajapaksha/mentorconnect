@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { addCall, api, authed, createClient, json } from './helpers';
+import { addCall, api, authed, createClient, createMentor, json } from './helpers';
 
 let cookie: string;
 beforeEach(async () => {
@@ -284,6 +284,35 @@ describe('stats', () => {
   });
 });
 
+describe('delete client', () => {
+  it('removes the client with calls, call history and meetings, leaving others intact', async () => {
+    const a = await createClient(cookie, '0771234567');
+    const b = await createClient(cookie, '0777654321');
+    const mentor = await createMentor(cookie);
+    const call = await addCall(cookie, a.id, { status: 'follow_up_1' });
+    await addCall(cookie, b.id, { status: 'follow_up_1' });
+    await api(`/api/calls/${call.id}`, { method: 'PATCH', cookie, json: { summary: 'edited' } });
+    const now = new Date().toISOString();
+    await env.DB.prepare(
+      `INSERT INTO meetings (id, mentor_id, client_id, title, start_at, end_at, status, mode, created_at, updated_at)
+       VALUES (?, ?, ?, 'Session', '2030-01-01T04:00:00.000Z', '2030-01-01T05:00:00.000Z', 'scheduled', 'online', ?, ?)`,
+    )
+      .bind(crypto.randomUUID(), mentor.id, a.id, now, now)
+      .run();
+
+    const res = await api(`/api/clients/${a.id}`, { method: 'DELETE', cookie });
+    expect(res.status).toBe(200);
+    expect((await api(`/api/clients/${a.id}`, { cookie })).status).toBe(404);
+    const n = await env.DB.prepare(
+      'SELECT (SELECT COUNT(*) FROM clients) AS clients, (SELECT COUNT(*) FROM calls) AS calls, (SELECT COUNT(*) FROM call_history) AS hist, (SELECT COUNT(*) FROM meetings) AS meetings, (SELECT COUNT(*) FROM mentors) AS mentors',
+    ).first();
+    expect(n).toEqual({ clients: 1, calls: 1, hist: 0, meetings: 0, mentors: 1 });
+  });
+  it('404s for an unknown client', async () => {
+    expect((await api('/api/clients/nope', { method: 'DELETE', cookie })).status).toBe(404);
+  });
+});
+
 describe('auth on client routes', () => {
   it.each([
     ['GET', '/api/clients'],
@@ -291,6 +320,7 @@ describe('auth on client routes', () => {
     ['POST', '/api/clients'],
     ['GET', '/api/clients/x'],
     ['PATCH', '/api/clients/x'],
+    ['DELETE', '/api/clients/x'],
     ['POST', '/api/clients/x/calls'],
     ['GET', '/api/stats'],
   ])('%s %s -> 401 without a session', async (method, path) => {

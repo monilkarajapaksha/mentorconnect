@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { availabilityIntervals } from '@calllog/shared';
 import { ApiError } from '../api/client';
 import {
   useDeactivateMentor,
+  useDeleteMentorPermanently,
   useMeetings,
   useMentor,
   useTimeOff,
@@ -40,6 +41,8 @@ export default function MentorDetail() {
   const toast = useToast();
   const update = useUpdateMentor(id);
   const deactivate = useDeactivateMentor(id);
+  const deletePermanently = useDeleteMentorPermanently(id);
+  const navigate = useNavigate();
 
   const tab = (TABS.find((t) => t.key === sp.get('tab'))?.key ?? 'calendar') as Tab;
   const viewParam = sp.get('view');
@@ -54,6 +57,7 @@ export default function MentorDetail() {
   const [move, setMove] = useState<MoveRequest | null>(null);
   const [editing, setEditing] = useState(false);
   const [confirmOff, setConfirmOff] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const meetings = useMeetings(
     range
@@ -111,7 +115,7 @@ export default function MentorDetail() {
   if (q.error || !q.data || !mentor || !blocks)
     return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
 
-  const modalOpen = !!creating || !!move || editing || confirmOff || !!meetingId;
+  const modalOpen = !!creating || !!move || editing || confirmOff || confirmDelete || !!meetingId;
   const upcoming = q.data.upcomingScheduledMeetings;
 
   return (
@@ -167,6 +171,9 @@ export default function MentorDetail() {
               Reactivate
             </button>
           )}
+          <button className="btn btn-danger" onClick={() => setConfirmDelete(true)}>
+            Delete permanently
+          </button>
         </div>
       </section>
 
@@ -286,6 +293,24 @@ export default function MentorDetail() {
                 toast.success('Mentor saved');
                 setEditing(false);
               },
+            })
+          }
+        />
+      )}
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete this mentor permanently?"
+          confirmLabel="Delete permanently"
+          message={`This permanently deletes ${mentor.name} together with all their meetings (including ${upcoming} upcoming), availability and time off. This cannot be undone. To just hide them, use Deactivate instead.`}
+          busy={deletePermanently.isPending}
+          onCancel={() => setConfirmDelete(false)}
+          onConfirm={() =>
+            deletePermanently.mutate(undefined, {
+              onSuccess: () => {
+                toast.success('Mentor deleted');
+                navigate('/mentors', { replace: true });
+              },
+              onError: () => toast.error('Could not delete the mentor'),
             })
           }
         />

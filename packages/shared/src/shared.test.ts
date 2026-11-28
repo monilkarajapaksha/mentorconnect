@@ -12,8 +12,8 @@ import {
 } from './index';
 
 describe('status enum', () => {
-  it('has 16 statuses incl. 10 follow-ups', () => {
-    expect(CALL_STATUSES).toHaveLength(16);
+  it('has 17 statuses incl. 10 follow-ups', () => {
+    expect(CALL_STATUSES).toHaveLength(17);
     expect(CALL_STATUSES.filter((s) => s.startsWith('follow_up_'))).toHaveLength(10);
   });
   it('has a label and color for every status', () => {
@@ -23,9 +23,13 @@ describe('status enum', () => {
     }
     expect(STATUS_LABELS.follow_up_2).toBe('2nd Follow-up');
   });
+  it('relabels declined and adds rejected_offer', () => {
+    expect(STATUS_LABELS.declined).toBe('Not answered');
+    expect(STATUS_LABELS.rejected_offer).toBe('Rejected the offer');
+  });
   it('migration CHECK list matches the shared enum (no drift)', () => {
     const sql = readFileSync(
-      resolve(__dirname, '../../../apps/api/migrations/0002_clients_calls.sql'),
+      resolve(__dirname, '../../../apps/api/migrations/0004_rejected_offer_status.sql'),
       'utf8',
     );
     expect(sql).toContain(`status IN (${statusSqlList()})`);

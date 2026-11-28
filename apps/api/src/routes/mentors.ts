@@ -236,6 +236,20 @@ mentors.delete('/:id', async (c) => {
   return c.json({ ok: true, mentor: await loadMentor(db, id) });
 });
 
+// --- permanent delete: removes the mentor with their meetings, availability and time off ---
+mentors.delete('/:id/permanent', async (c) => {
+  const id = c.req.param('id');
+  const db = c.env.DB;
+  await loadMentor(db, id);
+  // meetings.mentor_id has no cascade, so meetings go first (meeting_history cascades from them,
+  // calls.meeting_id is set to NULL); availability and time off cascade from the mentor row.
+  await db.batch([
+    db.prepare('DELETE FROM meetings WHERE mentor_id = ?').bind(id),
+    db.prepare('DELETE FROM mentors WHERE id = ?').bind(id),
+  ]);
+  return c.json({ ok: true });
+});
+
 // --- weekly availability ---
 mentors.get('/:id/availability', async (c) => {
   const id = c.req.param('id');

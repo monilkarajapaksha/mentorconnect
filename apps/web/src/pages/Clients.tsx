@@ -32,7 +32,7 @@ export default function Clients() {
           className="input !w-64"
           type="search"
           aria-label="Search clients"
-          placeholder="Search name, phone, company"
+          placeholder="Search name, phone, preferred job"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
@@ -65,7 +65,7 @@ export default function Clients() {
               <tr>
                 <th className="px-3 py-2">Name</th>
                 <th className="px-3 py-2">Phone</th>
-                <th className="hidden px-3 py-2 md:table-cell">Company</th>
+                <th className="hidden px-3 py-2 md:table-cell">Preferred job</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="hidden px-3 py-2 sm:table-cell">Last call</th>
               </tr>

@@ -18,14 +18,14 @@ describe('StatusFilter', () => {
   it('shows a count next to each status, e.g. "2nd Follow-up (7)"', async () => {
     await open(<StatusFilter selected={[]} counts={counts} onChange={() => {}} />);
     expect(screen.getByRole('checkbox', { name: '2nd Follow-up (7)' })).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: 'Declined (1)' })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Not answered (1)' })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Scheduled (0)' })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Any follow-up (10)' })).toBeInTheDocument(); // 3 + 7
   });
 
-  it('lists all 16 statuses plus "Any follow-up"', async () => {
+  it('lists all 17 statuses plus "Any follow-up"', async () => {
     await open(<StatusFilter selected={[]} counts={counts} onChange={() => {}} />);
-    expect(screen.getAllByRole('checkbox')).toHaveLength(17);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(18);
   });
 
   it('selecting a status calls onChange with it; multi-select adds to the list', async () => {
@@ -38,7 +38,7 @@ describe('StatusFilter', () => {
   it('unchecking removes a status', async () => {
     const onChange = vi.fn();
     await open(<StatusFilter selected={['declined', 'follow_up_2']} onChange={onChange} />);
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Declined' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Not answered' }));
     expect(onChange).toHaveBeenCalledWith(['follow_up_2']);
   });
 

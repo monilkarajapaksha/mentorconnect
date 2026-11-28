@@ -11,7 +11,7 @@ interface Props {
   error?: string;
 }
 
-/** Search clients by name/phone/company, or add a new one inline. */
+/** Search clients by name/phone/preferred job, or add a new one inline. */
 export function ClientPicker({ value, onChange, error }: Props) {
   const [text, setText] = useState('');
   const [debounced, setDebounced] = useState('');

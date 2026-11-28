@@ -104,6 +104,11 @@ function useWrite<TVars, TData>(fn: (v: TVars) => Promise<TData>) {
         'stats',
         'call-history',
         'lookup',
+        'mentor',
+        'mentors',
+        'meetings',
+        'meeting',
+        'free-slots',
       ]) {
         void qc.invalidateQueries({ queryKey: [key] });
       }
@@ -122,6 +127,9 @@ export const useUpdateClient = (id: string) =>
   useWrite((v: ClientFields) =>
     api<{ client: Client }>(`/clients/${id}`, { method: 'PATCH', body: v }),
   );
+
+export const useDeleteClient = (id: string) =>
+  useWrite(() => api<{ ok: true }>(`/clients/${id}`, { method: 'DELETE' }));
 
 export type CallPayload = {
   direction: CreateCallInput['direction'];
@@ -178,6 +186,9 @@ export const useUpdateMentor = (id: string) =>
   useWrite((v: Partial<MentorFields>) =>
     api<{ mentor: Mentor }>(`/mentors/${id}`, { method: 'PATCH', body: v }),
   );
+
+export const useDeleteMentorPermanently = (id: string) =>
+  useWrite(() => api<{ ok: true }>(`/mentors/${id}/permanent`, { method: 'DELETE' }));
 
 export const useDeactivateMentor = (id: string) =>
   useWrite(() => api<{ ok: true; mentor: Mentor }>(`/mentors/${id}`, { method: 'DELETE' }));

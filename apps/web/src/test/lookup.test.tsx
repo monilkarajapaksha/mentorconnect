@@ -25,7 +25,7 @@ describe('lookup flow', () => {
   it('shows status count cards that link to the filtered clients list', async () => {
     mockFetch(stats);
     renderApp('/');
-    const card = await screen.findByRole('link', { name: /Declined/ });
+    const card = await screen.findByRole('link', { name: /Not answered/ });
     expect(card).toHaveAttribute('href', '/clients?status=declined');
     expect(screen.getByRole('link', { name: /Any follow-up/ })).toHaveTextContent('2');
   });

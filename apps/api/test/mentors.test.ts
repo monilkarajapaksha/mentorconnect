@@ -451,6 +451,36 @@ describe('mentor deletion is blocked at the DB level while meetings exist', () =
   });
 });
 
+describe('permanent delete', () => {
+  it('removes the mentor, their meetings, availability and time off, and keeps other data', async () => {
+    const m = await createMentor(cookie);
+    const other = await createMentor(cookie, { email: 'other@example.com', name: 'Other' });
+    const c = await createClient(cookie, '0771234567');
+    await api(`/api/mentors/${m.id}/availability`, {
+      method: 'PUT',
+      cookie,
+      json: { blocks: [{ weekday: 1, startTime: '09:00', endTime: '10:00' }] },
+    });
+    await insertMeeting(m.id, c.id, '2030-01-01T04:00:00.000Z', '2030-01-01T05:00:00.000Z');
+    await insertMeeting(other.id, c.id, '2030-01-02T04:00:00.000Z', '2030-01-02T05:00:00.000Z');
+
+    const res = await api(`/api/mentors/${m.id}/permanent`, { method: 'DELETE', cookie });
+    expect(res.status).toBe(200);
+    expect((await api(`/api/mentors/${m.id}`, { cookie })).status).toBe(404);
+    const n = await env.DB.prepare(
+      'SELECT (SELECT COUNT(*) FROM meetings WHERE mentor_id = ?) AS mine, (SELECT COUNT(*) FROM meetings) AS total, (SELECT COUNT(*) FROM mentor_availability) AS a, (SELECT COUNT(*) FROM clients) AS clients',
+    )
+      .bind(m.id)
+      .first<{ mine: number; total: number; a: number; clients: number }>();
+    expect(n).toEqual({ mine: 0, total: 1, a: 0, clients: 1 });
+  });
+  it('404s for an unknown mentor', async () => {
+    expect((await api('/api/mentors/nope/permanent', { method: 'DELETE', cookie })).status).toBe(
+      404,
+    );
+  });
+});
+
 describe('auth on every mentor route', () => {
   it.each([
     ['GET', '/api/mentors'],
@@ -458,6 +488,7 @@ describe('auth on every mentor route', () => {
     ['GET', '/api/mentors/x'],
     ['PATCH', '/api/mentors/x'],
     ['DELETE', '/api/mentors/x'],
+    ['DELETE', '/api/mentors/x/permanent'],
     ['GET', '/api/mentors/x/availability'],
     ['PUT', '/api/mentors/x/availability'],
     ['GET', '/api/mentors/x/time-off'],

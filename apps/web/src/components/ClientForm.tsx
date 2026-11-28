@@ -63,7 +63,7 @@ export function ClientForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="label" htmlFor="client-company">
-            Company
+            Preferred job
           </label>
           <input
             id="client-company"

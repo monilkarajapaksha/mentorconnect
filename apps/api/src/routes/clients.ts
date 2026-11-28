@@ -202,6 +202,21 @@ clients.patch('/:id', async (c) => {
   return c.json({ client });
 });
 
+// --- permanent delete: removes the client with all their calls, call history and meetings ---
+clients.delete('/:id', async (c) => {
+  const id = c.req.param('id');
+  const db = c.env.DB;
+  const exists = await db.prepare('SELECT 1 AS x FROM clients WHERE id = ?').bind(id).first();
+  if (!exists) throw new AppError(404, 'NOT_FOUND', 'Client not found');
+  // meetings.client_id has no cascade, so meetings go first (meeting_history cascades from them);
+  // calls and call_history cascade from the client row.
+  await db.batch([
+    db.prepare('DELETE FROM meetings WHERE client_id = ?').bind(id),
+    db.prepare('DELETE FROM clients WHERE id = ?').bind(id),
+  ]);
+  return c.json({ ok: true });
+});
+
 // --- add a call ---
 clients.post('/:id/calls', async (c) => {
   const clientId = c.req.param('id');

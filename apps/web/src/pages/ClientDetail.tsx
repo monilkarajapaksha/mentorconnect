@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { STATUS_LABELS, type Call } from '@calllog/shared';
 import { ApiError } from '../api/client';
 import {
@@ -7,6 +7,7 @@ import {
   useClient,
   useCreateCall,
   useDeleteCall,
+  useDeleteClient,
   useUpdateCall,
   useUpdateClient,
 } from '../api/hooks';
@@ -20,7 +21,8 @@ import { useToast } from '../components/Toast';
 import { formatDateTime } from '../lib/time';
 
 type Dialog =
-  { kind: 'new' } | { kind: 'edit'; call: Call } | { kind: 'delete'; call: Call } | null;
+  | { kind: 'deleteClient' }
+  | { kind: 'new' } | { kind: 'edit'; call: Call } | { kind: 'delete'; call: Call } | null;
 
 export default function ClientDetail() {
   const { id = '' } = useParams();
@@ -32,6 +34,8 @@ export default function ClientDetail() {
   const createCall = useCreateCall(id);
   const updateCall = useUpdateCall();
   const deleteCall = useDeleteCall();
+  const deleteClient = useDeleteClient(id);
+  const navigate = useNavigate();
 
   if (q.isLoading) return <Loading />;
   if (q.error instanceof ApiError && q.error.status === 404) {
@@ -64,6 +68,11 @@ export default function ClientDetail() {
                 Edit client
               </button>
             )}
+            {!editing && (
+              <button className="btn btn-danger" onClick={() => setDialog({ kind: 'deleteClient' })}>
+                Delete client
+              </button>
+            )}
           </div>
         </div>
         {editing ? (
@@ -87,7 +96,7 @@ export default function ClientDetail() {
           </div>
         ) : (
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-            <Field label="Company" value={client.company} />
+            <Field label="Preferred job" value={client.company} />
             <Field label="Email" value={client.email} />
             <Field label="Notes" value={client.notes} />
           </dl>
@@ -172,6 +181,24 @@ export default function ClientDetail() {
             }
           />
         </Modal>
+      )}
+      {dialog?.kind === 'deleteClient' && (
+        <ConfirmDialog
+          title="Delete this client?"
+          confirmLabel="Delete client"
+          message={`This permanently deletes ${client.name} together with ${calls.length} call${calls.length === 1 ? '' : 's'}, their edit history and any meetings booked for them. This cannot be undone.`}
+          busy={deleteClient.isPending}
+          onCancel={() => setDialog(null)}
+          onConfirm={() =>
+            deleteClient.mutate(undefined, {
+              onSuccess: () => {
+                toast.success('Client deleted');
+                navigate('/clients', { replace: true });
+              },
+              onError: () => toast.error('Could not delete the client'),
+            })
+          }
+        />
       )}
       {dialog?.kind === 'delete' && (
         <ConfirmDialog
